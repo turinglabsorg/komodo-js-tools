@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  </head>
+  <body style="text-align:center;">
+    <div style="margin:20px auto; width:768px; display:inline-block;">
+        <h1>KomodoJS Testing Suite</h1>
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Slab&display=swap" rel="stylesheet">
+        <button onClick="getNewAddress()">CREATE NEW ADDRESS</button>
+        <pre style="width:100%; overflow:hidden; padding:10px; overflow-x:scroll; background:#eee; border-radius:5px" id="newaddressresponse"></pre>
+        <hr>
+        <button onClick="testSend()">TEST SEND</button>
+        <pre style="width:100%; overflow:hidden; padding:10px; overflow-x:scroll; background:#eee; border-radius:5px" id="sendresponse"></pre>
+        <hr>
+        <button onClick="testCrypt()">TEST CRYPT / DECRYPT</button>
+        <pre style="width:100%; overflow:hidden; padding:10px; overflow-x:scroll; background:#eee; border-radius:5px" id="cryptresponse"></pre>
+        <hr>
+        <button onClick="testSign()">TEST SIGN / VERIFY MESSAGE</button>
+        <pre style="width:100%; overflow:hidden; padding:10px; overflow-x:scroll; background:#eee; border-radius:5px" id="signresponse"></pre>
+        <pre style="width:100%; overflow:hidden; padding:10px; overflow-x:scroll; background:#eee; border-radius:5px" id="verifyresponse">Waiting for message to verify...</pre>
+    </div>
+    <style>
+        *{
+            font-family: 'Roboto Slab', serif;
+        }
+    </style>
+    <script>
+        function getNewAddress(){
+            window.KMDJS.createAddress('test').then(response => {
+                document.getElementById('newaddressresponse').innerHTML = JSON.stringify(response)
+            })
+        }
+
+        function testSend(){
+            var address = 'RViEPexN8ZMjnKr5F4mvGHD5AM7qcic1Yd'
+            var pubkey = '038a1f158126995b68f98e6e5a2f4f104b1c88cb09e8e3f6800f0c968a871b81c4'
+            var privkey = 'Uvp5PxBQgLW6D1TZF44rZ5YfGRTTHYnASEp9NaRNcdDE1xdJuE1s'
+            var password = 'test'
+            var protocol = ''
+            var isWriting = false
+            if(isWriting === false){
+                document.getElementById('sendresponse').innerHTML = 'Sending 1 KMD to ' + address + '...'
+                isWriting = true
+                window.KMDJS.buildWallet(
+                    password, 
+                    address,
+                    {
+                        prv: privkey,
+                        key: pubkey,
+                    }, false
+                ).then(wallet => {
+                    /*window.KMDJS.connectNode().then(node => {
+                        window.KMDJS.build(password, false, address, 0.05, '', 0.001, wallet).then(response => {
+                            document.getElementById('sendresponse').innerHTML = JSON.stringify(response)
+                            isWriting = false
+                        })
+                    })*/
+                    window.KMDJS.build(password, false, 'RNDGt6v4mhH6enmUfvzu1oWYtn9AbtdujX', 0.05, '', 0.0001, wallet).then(response => {
+                        document.getElementById('sendresponse').innerHTML = JSON.stringify(response)
+                        isWriting = false
+                    })
+                })
+            }
+        }
+
+        function testSign(){
+            var privkey = 'Uvp5PxBQgLW6D1TZF44rZ5YfGRTTHYnASEp9NaRNcdDE1xdJuE1s'
+            var password = 'test'
+            var message = 'Any cool message to sign and verify!'
+            var isSigning = false
+            if(isSigning === false){
+                document.getElementById('signresponse').innerHTML = 'Signing message...'
+                isSigning = true
+                window.KMDJS.signMessage(privkey, message).then(response => {
+                    document.getElementById('signresponse').innerHTML = JSON.stringify(response)
+                    window.KMDJS.verifyMessage(response.pubkey, response.signature, message).then(verification => {
+                        document.getElementById('verifyresponse').innerHTML = JSON.stringify(verification)
+                        isSigning = false
+                    })
+                })
+            }
+        }
+
+        function testCrypt(){
+            var password = 'test'
+            var metadata = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis quis risus auctor, eleifend neque sit amet, ultricies nulla. Suspendisse condimentum nisi ut nunc mattis, vel congue velit congue. Aliquam sit amet pharetra tellus. Etiam tellus lacus, pretium vel commodo a, tempor nec ante. Aenean turpis nisi, pulvinar eget vehicula at, dapibus at dui. Cras vitae dictum massa. Sed in orci lorem. Nullam ut mattis lacus. Mauris ut mattis tellus. Donec et posuere lorem, id elementum ligula. Aliquam eu mollis neque, eget venenatis erat. Aenean vestibulum nunc diam, et luctus massa porttitor ac. Morbi tempor eleifend bibendum. Curabitur sed diam leo.'
+            var isWriting = false
+            if(isWriting === false){
+                document.getElementById('cryptresponse').innerHTML = 'Crypting data...'
+                isWriting = true
+                window.KMDJS.cryptData(metadata,password).then(crypted => {
+                    var cryptresponse = crypted
+                    window.KMDJS.decryptData(crypted, password).then(decrypted => {
+                        cryptresponse +="\n\n-------\n\n" + decrypted
+                        document.getElementById('cryptresponse').innerHTML = cryptresponse
+                    })
+                })
+            }
+        }
+
+        
+    </script>
+  </body>
+</html>
